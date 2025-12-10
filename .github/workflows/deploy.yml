@@ -3,7 +3,7 @@ name: Deploy Moodle Static Site to GitHub Pages
 on:
   push:
     branches:
-      - main  # change if your main branch is named differently
+      - master  # change if your main branch is named differently
 
 jobs:
   build-and-deploy:
