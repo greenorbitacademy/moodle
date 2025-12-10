@@ -1,31 +1,44 @@
-name: Deploy Moodle Static Site to GitHub Pages
+name: Build and Deploy
 
 on:
   push:
     branches:
-      - master  # change if your main branch is named differently
+      - master
+
+permissions:
+  contents: read          # Needed to fetch repo contents
+  id-token: write         # Needed for OIDC / cloud deployments
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Checkout the repo
+      # 1. Checkout code
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # 2. Prepare static files
-      - name: Prepare static Moodle site
-        run: |
-          echo "Preparing static Moodle files..."
-          mkdir -p build
-          
-          # Copy everything except Git, node_modules, and workflow files
-          rsync -av --progress . build --exclude .git --exclude node_modules --exclude .github
-
-      # 3. Deploy to GitHub Pages
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
+      # 2. Set up Node.js (if building a JS-based site)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          branch: gh-pages    # branch GitHub Pages will use
-          folder: build       # folder with the static files
+          node-version: '20'
+
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # 4. Build project
+      - name: Build project
+        run: npm run build
+
+      # 5. Deploy using GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}   # Required token
+          publish_dir: ./public               # Folder containing build output
+          publish_branch: gh-pages            # Branch to deploy to
+
+      # Optional: Notify on success
+      - name: Deployment Complete
+        run: echo "Deployment successful!"
