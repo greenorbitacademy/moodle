@@ -1,32 +1,31 @@
-name: Deploy Moodle to GitHub Pages
+name: Deploy Moodle Static Site to GitHub Pages
 
 on:
   push:
     branches:
-      - master  # or your deployment branch
+      - master  # change if your main branch is named differently
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    steps:
 
-      # 1. Checkout the repository
+    steps:
+      # 1. Checkout the repo
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. (Optional) Install dependencies or build Moodle theme / HTML export
-      # Example if using a theme build script:
-      - name: Build static Moodle site
+      # 2. Prepare static files
+      - name: Prepare static Moodle site
         run: |
-          # Replace this with your actual build commands
-          # e.g., npm install && npm run build
-          echo "Building Moodle static site..."
+          echo "Preparing static Moodle files..."
           mkdir -p build
-          cp -r theme/* build/
+          
+          # Copy everything except Git, node_modules, and workflow files
+          rsync -av --progress . build --exclude .git --exclude node_modules --exclude .github
 
       # 3. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
         with:
-          branch: gh-pages     # branch for GitHub Pages
-          folder: build        # folder with the static files
+          branch: gh-pages    # branch GitHub Pages will use
+          folder: build       # folder with the static files
